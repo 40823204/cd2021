@@ -623,7 +623,75 @@
 <p>以下是我畫二軸機械臂的操作，連桿中各連接處沒畫孔的原因是因為在COPPELIA中可用工具直接將孔軸對正，因此省略了此畫圖步驟</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/lVVmNanbamk" title="YouTube video player" width="560"></iframe></p>
 <p><strong>2. 建立 CoppeliaSim 4.1.0 MTB robot 場景</strong></p>
-<p><strong>Google Drive:<a href="https://drive.google.com/file/d/14qllct0EMd6-HGJUDBmpFA_5vtLuIr1K/view?usp=sharing">檔案下載處</a></strong><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/JgXuAjS69sQ" title="YouTube video player" width="560"></iframe></p>
+<p><strong>Google Drive:<a href="https://drive.google.com/file/d/14qllct0EMd6-HGJUDBmpFA_5vtLuIr1K/view?usp=sharing">檔案下載處</a></strong></p>
+<p>以下影片過程為連接各軸件的步驟，包含加入末端吸盤的過程</p>
+<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/TWkeBA2z0jw" title="YouTube video player" width="560"></iframe></p>
+<p><strong>3. 手臂末端加入 components-gripper-suction pad 吸盤</strong></p>
+<p><strong>Lua鍵盤控制程式代碼說明</strong></p>
+<pre class="brush:html;auto-links:false;toolbar:false" contenteditable="false">方向鍵左&gt;代碼"2009"---控制joint1向左轉
+方向鍵右&gt;代碼"2010"---控制joint1向右轉
+方向鍵上&gt;代碼"2007"---控制joint2向左轉
+方向鍵下&gt;代碼"2008"---控制joint2向右轉
+s&gt;代碼"115"---吸盤向下
+w&gt;代碼"119"---吸盤向上
+空白鍵&gt;代碼"32"---放下物體</pre>
+<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/Qv3Liy41oyY" title="YouTube video player" width="560"></iframe></p>
+<p>程式碼</p>
+<pre class="brush:html;auto-links:false;toolbar:false" contenteditable="false">function sysCall_init()
+    joint1=sim.getObjectHandle('joint1')
+    joint2=sim.getObjectHandle('joint2')
+    jointz=sim.getObjectHandle('jointz')
+    joint3=sim.getObjectHandle('joint3')
+    sim.setJointTargetPosition(joint1,0)
+    sim.setJointTargetPosition(joint2,0)
+    sim.setJointTargetPosition(joint3,0)
+    sim.setJointTargetPosition(jointz,0)
+    deg1=0
+    deg2=0
+    deg3=0
+end
+function sysCall_actuation()
+    message,auxiliaryData=sim.getSimulatorMessage()
+    while message~=-1 do
+        if (message==sim.message_keypress) then
+            if (auxiliaryData[1]==2009) then
+            deg1=deg1-1
+            deg3=deg2-deg1
+            sim.setJointTargetPosition(joint1,deg1*math.pi/180)
+            end
+            if (auxiliaryData[1]==2010) then
+            deg1=deg1+1
+            deg3=deg2-deg1
+            sim.setJointTargetPosition(joint1,deg1*math.pi/180)
+            end
+            if (auxiliaryData[1]==2007) then
+            deg2=deg2-1
+            deg3=deg1-deg2
+            sim.setJointTargetPosition(joint2,deg2*math.pi/180)
+            end
+            if (auxiliaryData[1]==2008) then
+            deg2=deg2+1
+            deg3=deg1-deg2
+            sim.setJointTargetPosition(joint2,deg2*math.pi/180)
+            end
+            if (auxiliaryData[1]==115) then
+                sim.setJointTargetPosition(jointz,-0.023)
+                sim.setIntegerSignal("pad_switch",1)
+            end
+            if (auxiliaryData[1]==119) then
+                sim.setJointTargetPosition(jointz,0)
+            end
+            if (auxiliaryData[1]==32) then
+                sim.setIntegerSignal("pad_switch",0)
+            end
+            sim.setJointTargetPosition(joint3,deg3*math.pi/180)
+        end
+    message,auxiliaryData=sim.getSimulatorMessage()
+    end
+end</pre>
+<p><strong> 4. 逆向運動學函式</strong></p>
+<p>以程式迴圈方式執行 W15 兩個指定位置之方塊取放</p>
+<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/JgXuAjS69sQ" title="YouTube video player" width="560"></iframe></p>
 <p>程式碼</p>
 <pre class="brush:html;auto-links:false;toolbar:false" contenteditable="false">function moving(x,y)
     a=0.4
@@ -680,4 +748,4 @@ function sysCall_threadmain()
         sim.wait(5)
     end
 end</pre>
-<p><br/><br/></p>
+<p><strong> 5. Python remote API 逆向運動學函式</strong></p>
