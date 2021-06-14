@@ -144,7 +144,7 @@
 <h2>w13</h2>
 <p>內容:對RoboDK進行控制</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/yWgwEQ3DNv0" title="YouTube video player" width="560"></iframe></p>
-<h2>w15</h2>
+<h2>w15影片字幕整理</h2>
 <h3>part1</h3>
 <p>本周進度:研究下面影片內容</p>
 <p>如何將下列英文字幕翻譯為中文:點選設定&gt;字幕&gt;自動翻譯&gt;中文(繁體)</p>
@@ -430,7 +430,8 @@
 <p>2.進入黑窗打以下程式</p>
 <p><img caption="false" height="300" src="/images/cmd_FVett7sAge.png" width="400"/></p>
 <p>3.完成狀態</p>
-<p><img alt="" height="300" src="/images/msedge_zHZMrUBY34.png" width="400"/></p><h2>四驅車</h2>
+<p><img alt="" height="300" src="/images/msedge_zHZMrUBY34.png" width="400"/></p>
+<h2>四驅車</h2>
 <h3>coppeliasim</h3>
 <h4><strong>w12-13</strong></h4>
 <p>進度:coppelia模擬+lua控制</p>
@@ -467,7 +468,8 @@
 <p><span>4.進入小黑窗執行以下步驟</span></p>
 <p><span><img alt="" height="350" src="/images/cmd_cx5ascNJKL.png" width="500"/></span></p>
 <p><span><img alt="" height="350" src="/images/cmd_Acwys58oyS.png" width="500"/></span></p>
-<p><span><img alt="" height="350" src="/images/cmd_4AO0C2Q6aL.png" width="500"/></span></p><h1>影片區</h1>
+<p><span><img alt="" height="350" src="/images/cmd_4AO0C2Q6aL.png" width="500"/></span></p>
+<h1>影片區</h1>
 <h2>stage1每周影片區</h2>
 <p>W1</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/5hpsTemq_AI" width="560"></iframe></p>
@@ -614,3 +616,68 @@
 </tr>
 </tbody>
 </table>
+<h1>W16</h1>
+<h4><strong>1. Onshape 零組件繪製</strong></h4>
+<p>圖檔網址:<a href="https://cad.onshape.com/documents/a6adda143659f4830a64b826/w/c52c50d2634992ffe5c99dd4/e/013319cd704e496d14c729d0">https://cad.onshape.com/documents/a6adda143659f4830a64b826/w/c52c50d2634992ffe5c99dd4/e/013319cd704e496d14c729d0</a></p>
+<p>STL檔案下載處:<a href="/downloads/W16.7z">W16.7z</a></p>
+<p>以下是我畫二軸機械臂的操作，連桿中各連接處沒畫孔的原因是因為在COPPELIA中可用工具直接將孔軸對正，因此省略了此畫圖步驟</p>
+<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/lVVmNanbamk" title="YouTube video player" width="560"></iframe></p>
+<p><strong>2. 建立 CoppeliaSim 4.1.0 MTB robot 場景</strong></p>
+<p><strong>Google Drive:<a href="https://drive.google.com/file/d/14qllct0EMd6-HGJUDBmpFA_5vtLuIr1K/view?usp=sharing">檔案下載處</a></strong><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/JgXuAjS69sQ" title="YouTube video player" width="560"></iframe></p>
+<p>程式碼</p>
+<pre class="brush:html;auto-links:false;toolbar:false" contenteditable="false">function moving(x,y)
+    a=0.4
+    b=0.4
+    c=math.pow((math.pow(x,2)+math.pow(y,2)),0.5)
+    s=(a+b+c)/2
+    area=math.pow((s*(s-a)*(s-b)*(s-c)),0.5)
+    h=area/(2*c)
+    deg1_base=math.atan(x/y)
+    if x&lt;0 and y&lt;0 then
+        deg1_base=deg1_base+math.pi
+    end
+    deg1_tri=math.asin(h/a)
+    deg1=deg1_base+deg1_tri
+    deg2=math.pi-(0.5*math.pi-deg1_tri)-math.acos(h/b)
+    deg3=(deg2-deg1)
+    sim.setJointTargetPosition(joint01,deg1)
+    sim.setJointTargetPosition(joint02,-deg2)
+    sim.setJointTargetPosition(joint03,deg3)
+end
+function sysCall_threadmain()
+    joint01=sim.getObjectHandle('joint1')
+    joint02=sim.getObjectHandle('joint2')
+    joint03=sim.getObjectHandle('joint3')
+    jointz=sim.getObjectHandle('jointz')
+    sim.setJointTargetPosition(joint01,0)
+    sim.setJointTargetPosition(joint02,0)
+    sim.setJointTargetPosition(joint03,0)
+    sim.setJointTargetPosition(jointz,0)
+    sim.wait(5)
+    sim.setIntegerSignal("pad_switch",1)
+    sim.setJointTargetPosition(jointz,-0.023)
+    sim.wait(5)
+    sim.setJointTargetPosition(jointz,0)
+    sim.wait(5)
+    while sim.getSimulationState()~=sim.simulation_advancing_abouttostopre do
+        moving(0.2,0.7)
+        sim.wait(5)
+        sim.setIntegerSignal("pad_switch",0)
+        sim.wait(5)
+        sim.setIntegerSignal("pad_switch",1)
+        sim.setJointTargetPosition(jointz,-0.023)
+        sim.wait(5)
+        sim.setJointTargetPosition(jointz,0)
+        sim.wait(5)
+        moving(-0.3,-0.55)
+        sim.wait(5)
+        sim.setIntegerSignal("pad_switch",0)
+        sim.wait(5)
+        sim.setIntegerSignal("pad_switch",1)
+        sim.setJointTargetPosition(jointz,-0.023)
+        sim.wait(5)
+        sim.setJointTargetPosition(jointz,0)
+        sim.wait(5)
+    end
+end</pre>
+<p><br/><br/></p>
